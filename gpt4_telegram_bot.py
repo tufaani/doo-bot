@@ -1,5 +1,6 @@
 import logging
 import openai
+import logging
 import os
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
@@ -12,15 +13,19 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 # Your Telegram bot token
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+personaMessage = "Answer as God almighty"
 
 def start(update: Update, context: CallbackContext):
     update.message.reply_text('Hi! I am a bot that interacts with ChatGPT-4. Just send me a message, and I will respond with generated text.')
+
+def persona(update: Update, context: CallbackContext):
+    update.message.reply_text('Following is the persona of the bot: ' + personaMessage)
 
 def chat_gpt4(prompt):
     response = openai.Completion.create(
         engine="text-davinci-002",
         prompt=prompt,
-        max_tokens=50,
+        max_tokens=100,
         n=1,
         stop=None,
         temperature=0.8,
@@ -29,7 +34,7 @@ def chat_gpt4(prompt):
 
 def handle_message(update: Update, context: CallbackContext):
     user_input = update.message.text
-    prompt = f"Reply to this user message: \"{user_input}\""
+    prompt = f"{personaMessage} : {user_input}"
     response_text = chat_gpt4(prompt)
     update.message.reply_text(response_text)
 
@@ -38,6 +43,7 @@ def main():
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("persona", persona))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
     updater.start_polling()
